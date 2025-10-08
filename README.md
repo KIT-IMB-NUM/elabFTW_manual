@@ -1,4 +1,3 @@
-# elabFTW_manual
 
 # eLabFTW Manual
 
@@ -70,74 +69,179 @@ Keep PuTTYgen open for the next step.
 
 ## Starting an Instance on bwCloud
 
-you open the link
- and click on dashbord on the right corner up and then continue the same as screenshot.
+To begin, open the bwCloud portal link. Click on **Dashboard** in the upper right corner, as shown below:
 
-<p align="center"><img src="./docs/images/bwCloud_login.png" alt="bwCloud_login" width="800" /></p>
+<p align="center"><img src="./docs/images/bwCloud_login.png" alt="bwCloud_login" width="650" /></p>
 
-Then sign in and choose the institute KIT
+Sign in and select your institute (**KIT**):
 
-<p align="center"><img src="./docs/images/bwcloud_login02.png" alt="bwcloud_login02" width="800" /></p>
+<p align="center"><img src="./docs/images/bwcloud_login02.png" alt="bwcloud_login02" width="520" /></p>
 
-Then enter the KIT account credentials and log in to the portal (below screenshot)
+Enter your KIT account credentials to log in to the portal:
 
-<p align="center"><img src="./docs/images/bw_portal01.png" alt="bw_portal01" width="800" /></p>
+<p align="center"><img src="./docs/images/bw_portal01.png" alt="bw_portal01" width="520" /></p>
 
-Now you need to load the key that you have already generated using puttygen
+Next, import the SSH key you generated with PuTTYgen. Under **Compute**, click **Key Pairs**, then select **Import Key** at the top right.
 
-under compute click on the key pairs and then click on the import key on the top right of the page
+Fill in the required fields as shown below, then click **Import Key**. Your key will appear in the list.
 
-fill in the blanks as the screen shot below and then import the key. Then it will be listed there.
+<p align="center"><img src="./docs/images/bw_portal02.png" alt="bw_portal02" width="520" /></p>
 
-<p align="center"><img src="./docs/images/bw_portal02.png" alt="bw_portal02" width="800" /></p>
+Now, create a new instance. Under **Compute**, click **Instances**, then select **Launch Instance**.
 
-Now it is time to create an instance. Under compute click on instances and then click on lunch instance. then such window will open fo you
+<p align="center"><img src="./docs/images/instance01.png" alt="instance01" width="650" /></p>
 
-<p align="center"><img src="./docs/images/instance01.png" alt="instance01" width="800" /></p>
+Assign a name to your instance and click **Next**. Choose an operating system (e.g., **Ubuntu 24.04**), then click **Next**.
 
-assign a name and click on next. then choose an operating system. we choose ubuntu 24.04 here and then click on next.
+In the **Flavor** section, select one of the available hardware configurations.
 
-Then in flavor choose one of the available hardware configurations
+<p align="center"><img src="./docs/images/instance02.png" alt="instance02" width="520" /></p>
 
-<p align="center"><img src="./docs/images/instance02.png" alt="instance02" width="800" /></p>
+Continue with the default settings until you reach the **Key Pair** section. Here, select the SSH key you imported earlier, then click **Launch Instance**.
 
-After that you can continue the default values until the key pair section. There choose the saved key of prevoius step and click on lunch instance. the below screenshot
+<p align="center"><img src="./docs/images/instance03.png" alt="instance03" width="520" /></p>
 
-<p align="center"><img src="./docs/images/instance03.png" alt="instance03" width="800" /></p>
+After a short wait, your instance will be created. You should see it listed as shown below. Copy the instance's IP address—you will need it to connect via PuTTY in the next step.
 
-then the instance will be ceated after a few moments like the below screenshot. copy the ip address because you will need it to connect to instance using putty
-
-<p align="center"><img src="./docs/images/instance04.png" alt="instance04" width="800" /></p>
+<p align="center"><img src="./docs/images/instance04.png" alt="instance04" width="520" /></p>
 
 ---
 
 ## Connecting to the Instance via PuTTY
 
-*(Content to be added later)*
+Open the **PuTTY** application. In the left sidebar, navigate to **Connection > SSH > Auth**. Here, you will specify your credentials as shown below:
+
+<p align="center"><img src="./docs/images/putty01.png" alt="PuTTY SSH Auth settings" width="600" /></p>
+
+Click **Browse** and select the `.ppk` private key file you saved earlier with PuTTYgen.
+
+Next, return to the **Session** section. Enter your instance's IP address in the **Host Name (or IP address)** field. Optionally, assign a name to your session and click **Save**. Double-click your saved session to connect, as illustrated below:
+
+<p align="center"><img src="./docs/images/putty02.png" alt="PuTTY session setup" width="600" /></p>
+
+If PuTTY displays a security alert, click **accept** it.
+
+When prompted for a login name, enter `ubuntu`. You should now see the terminal window, confirming a successful connection:
+
+<p align="center"><img src="./docs/images/putty03.png" alt="PuTTY terminal login" width="600" /></p>
+<p align="center"><img src="./docs/images/putty04.png" alt="Connected terminal" width="600" /></p>
 
 ---
 
-## Transferring Files (Optional)
 
-*(Content to be added later)*
 
----
+## Installing dependencies of elabftw
+
+To prepare your system for **eLabFTW**, you'll need to install several dependencies using **elabctl**. For detailed instructions and further documentation, refer to [the official eLabFTW documentation](https://doc.elabftw.net/).
+
+Begin by installing `curl`, which is required for downloading files:
+
+```bash
+sudo apt update && sudo apt install -y curl
+```
+
+Verify the installation by checking the version:
+
+```bash
+curl --version
+```
+
+Next, download and install Docker Compose:
+
+```bash
+sudo curl -SL https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+```
+
+Make Docker Compose executable:
+
+```bash
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+Create a symbolic link for easier access:
+
+```bash
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+```
+
+Confirm Docker Compose is installed correctly:
+
+```bash
+docker-compose --version
+```
+
+Install Docker itself:
+
+```bash
+sudo apt install -y docker.io
+```
+
+Additionally, install `dialog` and `borgbackup` for interactive dialogs and backup management:
+
+```bash
+sudo apt install -y dialog borgbackup
+```
+
+Check their installations:
+
+```bash
+dialog --version
+borgbackup --version
+```
 
 ## Installing eLabFTW
 
-*(Content to be added later)*
 
----
+To install **eLabFTW** using the official installer script, run the following commands in your terminal. These commands will download the `elabctl` installer, make it executable, move it to a system-wide location, and start the installation process:
 
-## Configuring Docker and elabctl
+```bash
+curl -sL https://get.elabftw.net -o elabctl
+chmod +x elabctl
+sudo mv elabctl /usr/local/bin/
+elabctl install
+```
 
+The installer will guide you through the setup steps. Follow the prompts to complete the installation.
+
+Follow the on-screen instructions to configure your eLabFTW instance.
+<p align="center"><img src="./docs/images/elabctl01.png" alt="elabctl installation step 1" width="600" /></p >
+
+<p align="center"><img src="./docs/images/elabctl02.png" alt="elabctl installation step 2" width="600" /></p >
+
+Now it is time to choose if you have a domain name or if you want to use the IP address of your instance to access eLabFTW. For using the IP address, you have to choose local computer instead of a server with a domain name.
+
+<p align="center"><img src="./docs/images/elabctl03.png" alt="elabctl installation step 3" width="600" /></p >
+
+## Configuring the .yml file
+
+After the installation, it is time to configure the elabftw.yml file. for running it on your local computer keep the default settings. However it you are installing it on a server like bwCloud, you need to change the url to your IP address like shown below.
+
+<p align="center"><img src="./docs/images/yml.png" alt="elabctl yml configuration" width="600" /></p >
+then save the file and exit the editor.
+
+Now it is time to start and initialize eLabFTW with the following command:
+
+```bash
+sudo elabctl start
+sudo elabctl initialize
+```
+and wait until the process is finished as shown below.
+<p align="center"><img src="./docs/images/elabctl04.png" alt="elabctl initialization" width="600" /></p >
+
+keep in mind that the initialization process might take a while. Even if it shows done and healthy, it might still be in progress.
 *(Content to be added later)*
 
 ---
 
 ## Accessing eLabFTW in Browser
 
-*(Content to be added later)*
+If you set everything up correctly, you should be able to access eLabFTW in your web browser by navigating to 
+
+`https://<your-instance-ip>` for installing on bwCloud
+or 
+`https://localhost` for installing on your local computer.
+
+<p align="center"><img src="./docs/images/elabFTWbrowser.png" alt="eLabFTW login page" width="600" /></p >
 
 ---
 
