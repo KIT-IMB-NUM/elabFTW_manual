@@ -247,11 +247,75 @@ or
 
 ## Data Storage and Backups
 
-*(Content to be added later)*
+This way we create a repo and assign a passphrase key
 
----
+```bash
+REPO="$HOME/elabftw_borg_repo"
+borg init -e repokey-blake2 "$REPO"
+borg info "$REPO"
+```
 
-## Troubleshooting
+After running the above commands it will ask for passphrase key. enter and remember it because we need to use it in .conf file
+
+Now it is time to create .conf file in the specific directory
+
+```bash
+sudo mkdir -p /root/.config
+sudo touch /root/.config/elabctl.conf
+```
+and to edit it run
+
+```bash
+sudo nano /root/.config/elabctl.conf
+```
+
+And afterward it is time to set proper content for that.
+
+Here is the file from documentation and following is 
+
+Here are the 6 lines we used:
+```bash
+declare BORG_PATH="/usr/bin/borg"
+declare BORG_PASSPHRASE="REPLACE_WITH_YOUR_PASSPHRASE"
+declare BORG_REPO="/home/<USER>/elabftw_borg_repo"
+declare BACKUP_DIR="/var/backups/elabftw"
+declare CONF_FILE="/etc/elabftw.yml"
+declare DATA_DIR="/var/elabftw"
+```
+
+(Replace "USER" with your actual username, and put your real passphrase.)
+For the bwcloud server it is ubuntu
+
+Also keep in mind that the data dir can be mnt or var folder based on the situation if a volume is mounted or not.
+
+To ensure if the content of conf file is already changed run
+
+```bash
+sudo cat /root/.config/elabctl.conf
+```
+
+And now you are able to run the backup command
+```bash
+sudo elabctl backup
+```
+This will create a backup of your eLabFTW data in the Borg repository you configured.
+
+To download the repo on youtr local computer first you need to archive it using the following command that creates a tar.gz file of the repo directory.
+
+```bash
+sudo tar -C /home/ubuntu -czf /tmp/elabftw_borg_repo-$(date +%F).tar.gz elabftw_borg_repo
+```
+
+Now to download the file on your local computer you can use putty scp or pscp command. Here is an example of using pscp command. Open the powershell and run the following command.
+
+```shell
+mkdir C:\Backups
+```
+
+```shell
+"C:\Path\To\pscp.exe" -r -i "C:\Path\To\your-key.ppk" ubuntu@<SERVER_IP_OR_NAME>:/home/ubuntu/elabftw_borg_repo C:\Backups\
+```
+
 
 *(Content to be added later)*
 
