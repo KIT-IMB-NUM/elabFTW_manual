@@ -4,7 +4,7 @@
 > A step‑by‑step illustrated guide for installing, configuring, and using eLabFTW and related tools on bwCloud.
 
 <p align="center">
-  <img src="./docs/images/hero.png" alt="eLabFTW Manual cover" width="800" />
+  <img src="./docs/images/cover.png" alt="eLabFTW Manual cover" width="500" />
 </p>
 
 ---
