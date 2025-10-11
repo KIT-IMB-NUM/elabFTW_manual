@@ -21,6 +21,7 @@
 * [Configuring Docker and elabctl](#configuring-docker-and-elabctl)
 * [Accessing eLabFTW in Browser](#accessing-elabftw-in-browser)
 * [Data Storage and Backups](#data-storage-and-backups)
+* [Restoring from Backup](#restoring-from-backup)
 * [Troubleshooting](#troubleshooting)
 * [Appendix](#appendix)
 
@@ -317,9 +318,195 @@ mkdir C:\Backups
 ```
 
 
+it would be also beneficial to download both .yml and .conf files to have a complete backup of your eLabFTW setup.
+because they are root owned it is better to copy them first to a user owned directory and then download them.
+
+to copy them to a user owned directory run the following commands
+
+
+```bash
+# copy to your home and make readable
+sudo cp /root/.config/elabctl.conf /home/ubuntu/
+sudo cp /etc/elabftw.yml          /home/ubuntu/
+sudo chown ubuntu:ubuntu /home/ubuntu/elabctl.conf /home/ubuntu/elabftw.yml
+sudo chmod 600 /home/ubuntu/elabctl.conf /home/ubuntu/elabftw.yml
+```
+
+and to download them use the same command as above but change the source path to /home/ubuntu/elabftw.yml and /home/ubuntu/elabctl.conf
+
+for example
+
+```shell
+# download elabctl.conf
+.\pscp.exe -i ".\test_Elabftw.ppk" ubuntu@193.196.36.221:/home/ubuntu/elabctl.conf .\
+
+# download elabftw.yml
+.\pscp.exe -i ".\test_Elabftw.ppk" ubuntu@193.196.36.221:/home/ubuntu/elabftw.yml .\
+```
+be aware that first you need to redirect to the directory you want to download the files to. And also the pscp.exe and the key file should be in the same directory or you need to provide the full path to them, if you want to run the above commands.
+
+
+
 *(Content to be added later)*
 
 ---
+
+## Restoring from Backup
+
+first let us say we create a directory on the server ~/home/ named restore
+
+```bash
+mkdir -p ~/home/restore
+```
+And then upload all the .tar.gz file and the .yml and .conf files to that directory using pscp and following commands
+
+```bash
+# Upload individual files to ~/restore on the server
+.\pscp.exe -i ".\test_Elabftw.ppk" ".\elabctl.conf" ".\elabftw.yml" ".\elabftw_borg_repo-2025-10-10.tar.gz" ubuntu@193.196.36.221:/home/ubuntu/restore/
+```
+
+Now you would be able to see the files in the restore directory
+
+```bash
+ls -l ~/home/restore
+```
+Now it is time to extract the .tar.gz file into a repo using the following command
+
+```bash
+sudo tar -C "$HOME/restore" -xzf "$HOME/restore/elabftw_borg_repo-2025-10-10.tar.gz"
+```
+
+and run this command to ensure its a valid borg repo
+
+```bash
+sudo env BORG_PASSPHRASE='<passphrasekey>' borg info "$HOME/restore/elabftw_borg_repo"
+```
+(replace <passphrasekey> with your actual passphrase key)
+
+If it shows “Repository ID … Encrypted: Yes (repokey BLAKE2b)” and an archive name, it’s a valid Borg repo.
+
+now it is time to set that repo as the borg repo using the follwoing commands
+```bash
+export BORG_REPO="$HOME/restore/elabftw_borg_repo"
+export BORG_PASSPHRASE='<passphrasekey>'
+sudo -E borg list
+```
+Note: sudo -E keeps those two env vars so Borg can read the (root-owned) repo.
+(replace <passphrasekey> with your actual passphrase key)
+
+and then we have to extract it using the following command
+
+```bash
+sudo -E borg extract "::test-elabftw-2025-10-10_14-23"
+```
+(replace test-elabftw-2025-10-10_14-23 with your actual archive name)
+
+now we have to copy both .yml and .conf files to their proper locations
+
+```bash
+# Copy elabftw.yml back to its main location
+sudo cp "$HOME/restore/elabftw.yml" /etc/elabftw.yml
+sudo chown root:root /etc/elabftw.yml
+sudo chmod 600 /etc/elabftw.yml
+
+# Copy elabctl.conf back to its main location
+sudo mkdir -p /root/.config
+sudo cp "$HOME/restore/elabctl.conf" /root/.config/elabctl.conf
+sudo chown root:root /root/.config/elabctl.conf
+sudo chmod 600 /root/.config/elabctl.conf
+```
+now we move the uploaded files of the backup into the proper locations
+
+first let us remove if the destination exists
+
+```bash
+# ensure destination exists
+sudo mkdir -p /var/elabftw/web
+# empty the destination (glob expands inside a root shell)
+sudo bash -lc 'rm -rf /var/elabftw/web/*'
+
+# now move the restored files in
+sudo bash -lc 'mv /home/ubuntu/restore/var/elabftw/web/* /var/elabftw/web/'
+
+# fix permissions (per doc)
+sudo chown -R 101:101 /var/elabftw/web
+```
+
+Now we import the SQL database (the mysql container must be running):
+
+first we need to cd to the directory where the sql file is located but as it is root owned we need to change to the root user
+
+```bash
+sudo -s
+cd /home/ubuntu/restore/var/backups/elabftw
+ls -lh
+```
+and now we cd into the mysql container
+
+```bash
+cd /var/backups/elabftw
+```
+now its time to unzip the most recent sql.gz file
+
+```bash
+gunzip mysql_dump-2025-10-10_14-23-20.sql.gz
+ls -lh mysql_dump-2025-10-10_14-23-20.sql
+```
+(replace mysql_dump-2025-10-10_14-23-20.sql with your actual sql file name)
+
+now we have to copy it into the mysql container, please pay attention that the mysql container must be running
+
+to check if it is running ensure that elabctl is started and then run
+
+```bash
+docker ps
+```
+it should show a container with mysql name and label it as healthy
+
+now from the folder that has the .sql dumb we have to copy it into the mysql container using the following command
+
+```bash
+docker cp mysql_dump-2025-10-10_14-23-20.sql mysql:/
+```
+(replace mysql_dump-2025-10-10_14-23-20.sql with your actual sql file name)
+and then it has to show that it is successfully copied.
+
+now run the following command
+```bash
+docker exec -it mysql bash # spawn a shell in the mysql container
+
+```
+
+now you need to login to mysql using the MYSQL_ROOT_PASSWORD which is available in your elabftw.yml file. Then run the following command and after entering the password you will be in the mysql prompt
+
+```bash
+mysql -u root -p
+```
+
+Thereafter you see the mysql prompt
+
+```bash
+mysql>
+```
+
+And there contunie with the following commands
+
+```bash
+Mysql> drop database elabftw; # delete the brand new database
+Mysql> create database elabftw character set utf8mb4 collate utf8mb4_0900_ai_ci; # create a new one
+Mysql> use elabftw; # select it
+Mysql> set names utf8mb4; # make sure you import in utf8 (don't do this if you are in latin1)
+Mysql> source mysql_dump-YYYY-MM-DD.sql; # import the backup file (replace with your actual sql file name)
+Mysql> exit; # exit mysql
+```
+
+Now you can exit from the mysql container and also from the root user
+
+```bash
+exit
+```
+You are all set now.
+```bash
 
 ## Appendix
 
