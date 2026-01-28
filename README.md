@@ -72,6 +72,8 @@ Keep PuTTYgen open for the next step.
 
 To begin, open the bwCloud portal link. Click on **Dashboard** in the upper right corner, as shown below:
 
+https://portal.bw-cloud.org/ this is the link of bwcloud
+
 <p align="center"><img src="./docs/images/bwCloud_login.png" alt="bwCloud_login" width="650" /></p>
 
 Sign in and select your institute (**KIT**):
@@ -515,3 +517,4 @@ Additional resources, references, and external documentation links will be added
 ---
 
 > **Next step:** You can now start adding the written content and screenshots section by section. I’ll help format and illustrate them as you provide each part.
+
