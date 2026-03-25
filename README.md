@@ -86,7 +86,7 @@ Enter your KIT account credentials to log in to the portal:
 
 Next, import the SSH key you generated with PuTTYgen. Under **Compute**, click **Key Pairs**, then select **Import Key** at the top right.
 
-Fill in the required fields as shown below, then click **Import Key**. Your key will appear in the list.
+Fill in the required fields as shown below, then click **Import Key**. Your key will appear in the list. (it would be better to paste the public key inside the box instead of loading the file)
 
 <p align="center"><img src="./docs/images/bw_portal02.png" alt="bw_portal02" width="520" /></p>
 
@@ -232,8 +232,11 @@ and wait until the process is finished as shown below.
 <p align="center"><img src="./docs/images/elabctl04.png" alt="elabctl initialization" width="600" /></p >
 
 keep in mind that the initialization process might take a while. Even if it shows done and healthy, it might still be in progress.
-*(Content to be added later)*
+For some versions you may need to run this command as well
 
+```bash
+sudo docker exec elabftw bin/init db:install
+```
 ---
 
 ## Accessing eLabFTW in Browser
